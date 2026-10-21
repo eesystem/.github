@@ -1,0 +1,33 @@
+name: kick
+# Lands one job on a GARM scale set so GitHub hands that scale set the jobs
+# queued while GARM was down (lokkju/infra#490). Dispatched by the queue
+# exporter in lokkju/infra (homelab/platform/garm/queue/garm_queue_exporter.py)
+# with the owner's kick App, which has actions:write on this repo only.
+# Managed by Pulumi (pulumi/kick/kick.yml in lokkju/infra); edits here are
+# overwritten on the next apply.
+on:
+  workflow_dispatch:
+    inputs:
+      label:
+        description: GARM scale set to land the job on
+        required: true
+        type: choice
+        # GARM's scale set names (homelab/platform/garm/garm.yaml), so a
+        # dispatch can't send the job to a GitHub-hosted runner. A kick on
+        # homelab-container fails after it lands (that scale set requires
+        # `container:`); landing is all a kick needs.
+        options:
+          - homelab
+          - homelab-gpu
+          - homelab-build
+          - homelab-docker
+          - homelab-container
+
+permissions: {}
+
+jobs:
+  kick:
+    runs-on: ["${{ inputs.label }}"]
+    timeout-minutes: 5
+    steps:
+      - run: "true"
